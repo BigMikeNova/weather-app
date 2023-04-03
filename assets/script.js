@@ -14,7 +14,7 @@ function searchWeather() {
 		localStorage.setItem('searchHistory', JSON.stringify(searchHistoryArray));
 
 		// Fetch weather data for the searched city
-		fetch(`https://api.openweathermap.org/data/2.5/weather?q=${searchTerm}&appid=<your_api_key>&units=metric`)
+		fetch(`https://api.openweathermap.org/data/2.5/weather?q=${searchTerm}&appid=<9b7d5c66f4907f2cb41f1aeb308f77a9>&units=metric`)
 			.then(response => response.json())
 			.then(data => {
 				// Display weather data for the searched city
