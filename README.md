@@ -1,5 +1,10 @@
 # 06 Server-Side APIs: Weather Dashboard
 
+
+![image](https://user-images.githubusercontent.com/125073452/229662517-50191208-b25c-44b8-8fe2-8a55013e806c.png)
+
+https://bigmikenova.github.io/weather-app/
+
 ## Your Task
 
 Third-party APIs allow developers to access their data and functionality by making requests with specific parameters to a URL. Developers are often tasked with retrieving data from another application's API and using it in the context of their own. Your challenge is to build a weather dashboard that will run in the browser and feature dynamically updated HTML and CSS.
