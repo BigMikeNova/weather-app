@@ -1,5 +1,5 @@
-const searchForm = document.querySelector('#search');
-const searchInput = document.querySelector('#search-input');
+var searchForm = document.querySelector('#search');
+var searchInput = document.querySelector('#search-input');
 
 searchForm.addEventListener('submit', (event) => {
 	event.preventDefault();
@@ -8,7 +8,7 @@ searchForm.addEventListener('submit', (event) => {
 
 
 async function searchWeather() {
-	const city = searchInput.value;
+	const city = searchInput.val();
 	
 	if (city) {
 		try {
@@ -24,8 +24,8 @@ async function searchWeather() {
 }
 
 async function getWeatherData(city) {
-	const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=<9b7d5c66f4907f2cb41f1aeb308f77a9
-	>&units=metric`;
+	const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=9b7d5c66f4907f2cb41f1aeb308f77a9
+	&units=metric`;
 	const response = await fetch(url);
 	const data = await response.json();
 	return data;
@@ -61,8 +61,8 @@ function addToSearchHistory(city) {
 
 async function displayForecast(city) {
 	// Build the URL for the 5-day forecast API call
-	const url = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=<9b7d5c66f4907f2cb41f1aeb308f77a9
-	>&units=metric`;
+	const url = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=9b7d5c66f4907f2cb41f1aeb308f77a9
+	&units=metric`;
 
 	try {
 		// Fetch the forecast data for the specified city
