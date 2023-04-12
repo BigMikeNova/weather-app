@@ -1,6 +1,6 @@
 var searchForm = document.querySelector('#search');
 var searchInput = document.querySelector('#search-input');
-var apiKey = '9b7d5c66f4907f2cb41f1aeb308f77a9';
+var APIKey = '9b7d5c66f4907f2cb41f1aeb308f77a9';
 
 searchForm.addEventListener('submit', (event) => {
 	event.preventDefault();
@@ -8,114 +8,118 @@ searchForm.addEventListener('submit', (event) => {
 });
 
 
-async function searchWeather() {
-	const city = searchInput.val();
-	
-	if (city) {
-		try {
-			const weatherData = await getWeatherData(city);
-			displayWeather(weatherData);
-			addToSearchHistory(city);
-			displaySearchHistory();
-			displayForecast(city); 
-		} catch (error) {
-			console.log(error);
-		}
-	}
+var searchBtnEl = document.querySelector("#searchBtn");
+searchBtnEl.addEventListener("click", addResult);
+
+searchInput.addEventListener("keypress", function(event) {
+  // If the user presses the "Enter" key on the keyboard
+  if (event.key === "Enter") {
+    // Cancel the default action, if needed
+    event.preventDefault();
+    // Trigger the search button element with a click
+    searchBtnEl.click();
+  }
+});
+
+
+function addResult(event) {
+  event.preventDefault();
+  let searchInput = document.querySelector("#search");
+  var cityInput = searchInput.value;
+  console.log(cityInput);
+  searchCity(cityInput);
 }
 
-async function getWeatherData(city) {
-	const url = `https://api.openweathermap.org/data/2.5/weather?q=`
-	+city
-	+`&appid=`
-	+apiKey;
-	const response = await fetch(url);
-	const data = await response.json();
-	return data;
+// function to get lat, lon of city
+function searchCity(userInput) {
+  document.querySelector("#weatherContainer").innerHTML = "";
+  // api search function goes here
+  var geoUrl =
+    "https://api.openweathermap.org/geo/1.0/direct?q=" +
+    userInput +
+    "&limit=5&appid=" +
+    APIKey;
+  fetch(geoUrl)
+    .then(function (response) {
+      return response.json();
+    })
+    .then(function (data) {
+      var cityData = data[0];
+      console.log(cityData);
+      var geoLat = cityData.lat;
+      var geoLon = cityData.lon;
+      getWeatherData(geoLat, geoLon, cityData);
+    });
+  console.log("Your city is: " + userInput);
 }
 
-function displayWeather(data) {
-	const weatherContainer = document.querySelector('#weather-container');
-	
-	const cityElement = document.createElement('h2');
-	cityElement.textContent = data.name;
-	weatherContainer.appendChild(cityElement);
+// function to get current weather for searched city
+function currentWeather(weatherObj) {
+  // var dateTime = weatherObj.dt_txt;
+  var tempData = weatherObj.list[0].main.temp;
+  var windSpeedData = weatherObj.list[0].wind.speed;
+  var currentConditionsData = weatherObj.list[0].weather[0].description;
+  var weatherIcon = weatherObj.list[0].weather[0].icon;
+  imgSrc = "https://openweathermap.org/img/wn/" + weatherIcon + ".png";
+  var cityNameData = weatherObj.city.name;
+  var dateTxt = weatherObj.list[0].dt_txt.split(" ");
+  var cityEl = $("#weatherContainer");
+  cityEl.append($("<h2>").text(" Today in " + cityNameData + "(" + dateTxt[0] + ")"));
+  cityEl.append($("<img>").attr("src", imgSrc));
+  cityEl.append($("<p>").text(" Temp: " + tempData + "F"));
+  cityEl.append($("<p>").text(" Wind Speed: " + windSpeedData + "mph"));
+  cityEl.append($("<p>").text(" Conditions: " + currentConditionsData));
 
-	const temperatureElement = document.createElement('p');
-	temperatureElement.innerHTML = `Temperature: ${data.main.temp}&deg;C`;
-	weatherContainer.appendChild(temperatureElement);
-
-	const descriptionElement = document.createElement('p');
-	descriptionElement.innerHTML = `Weather: ${data.weather[0].description}`;
-	weatherContainer.appendChild(descriptionElement);
 }
 
-function addToSearchHistory(city) {
-	// Get the search history array from local storage
-	let searchHistoryArray = JSON.parse(localStorage.getItem('searchHistory')) || [];
-
-	// Add the city to the search history array
-	searchHistoryArray.unshift(city);
-
-	// Store the updated search history array in local storage
-	localStorage.setItem('searchHistory', JSON.stringify(searchHistoryArray));
+// function to get forecasted weather for searched city from earlier called API
+function getForecast(arrayOfWeatherObjs) {
+  var list = $("#weatherContainer");
+  list.attr("style", "width: 375px;");
+  console.log(arrayOfWeatherObjs);
+  for (let i = 0; i < arrayOfWeatherObjs.length; i++) {
+    var obj = arrayOfWeatherObjs[i];
+    var dayTimeDisplay = obj.dt_txt.split(" ");
+    if (obj.dt_txt.includes("12:00:00")) {
+      var forecastListItems = $("<li>");
+      forecastListItems.attr("style", "list-style-type: none;");
+      var forecastTempData = Math.floor(obj.main.temp);
+      var forecastWindSpeedData = Math.floor(obj.wind.speed);
+      var forecastCoonditions = obj.weather[0].description;
+      var forecastWeatherIcon = obj.weather[0].icon;
+      imgSrc = "https://openweathermap.org/img/wn/" + forecastWeatherIcon + ".png";
+      forecastListItems.append($("<hr>"));
+      forecastListItems.append($("<h3>").text(dayTimeDisplay[0]));
+      forecastListItems.append($("<img>").attr("src", imgSrc));
+      forecastListItems.append($("<p>").text(" Temp: " + forecastTempData + "F"));
+      forecastListItems.append($("<p>").text(" Wind Speed: " + forecastWindSpeedData + "mph"));
+      forecastListItems.append($("<p>").text(" Condtions: " + forecastCoonditions));
+      list.append(forecastListItems);
+    }
+  }
 }
 
+// calls Open weather API to get weather
+function getWeatherData(lat, lon) {
+  $("#weatherContainer").addClass("list-group");
+  $("#weatherContainer").append($("<ol>"));
+  $("#weatherContainer").attr("style", "display:inline-block");
 
-async function displayForecast(city) {
-	// Build the URL for the 5-day forecast API call
-	const url = `https://api.openweathermap.org/data/2.5/forecast?q=`
-	+ city
-	+ `&appid=`
-	+ apiKey;
+  var weatherUrl =
+    "https://api.openweathermap.org/data/2.5/forecast?lat=" +
+    lat +
+    "&lon=" +
+    lon +
+    "&units=imperial&appid=" +
+    APIKey;
 
-	try {
-		// Fetch the forecast data for the specified city
-		const response = await fetch(url);
-		const data = await response.json();
-
-		// Get the forecast container element
-		const forecastContainer = document.querySelector('#forecast');
-
-		// Clear the forecast container
-		forecastContainer.innerHTML = '';
-
-		// Loop through the forecast data and display each
-		data.list.forEach(forecast => {
-			// Get the date and time of the forecast
-			const forecastDate = new Date(forecast.dt * 1000);
-
-			// Check if the forecast is for noon (12:00 PM) local time
-			if (forecastDate.getHours() === 12) {
-				// Create a container for the forecast data
-				const forecastElement = document.createElement('div');
-				forecastElement.classList.add('forecast-item');
-
-				// Create an element for the forecast date
-				const dateElement = document.createElement('p');
-				dateElement.textContent = forecastDate.toLocaleDateString();
-				forecastElement.appendChild(dateElement);
-
-				// Create an element for the forecast icon
-				const iconElement = document.createElement('img');
-				iconElement.src = `https://openweathermap.org/img/w/${forecast.weather[0].icon}.png`;
-				forecastElement.appendChild(iconElement);
-
-				// Create an element for the forecast temperature
-				const temperatureElement = document.createElement('p');
-				temperatureElement.innerHTML = `Temperature: ${forecast.main.temp}&deg;C`;
-				forecastElement.appendChild(temperatureElement);
-
-				// Create an element for the forecast description
-				const descriptionElement = document.createElement('p');
-				descriptionElement.innerHTML = `Weather: ${forecast.weather[0].description}`;
-				forecastElement.appendChild(descriptionElement);
-
-				// Add the forecast data to the forecast container
-				forecastContainer.appendChild(forecastElement);
-			}
-		});
-	} catch (error) {
-		console.log(error);
-	}
+  fetch(weatherUrl)
+    .then(function (response) {
+      return response.json();
+    })
+    .then(function (data) {
+      currentWeather(data);
+      getForecast(data.list);
+    });
 }
+var searchEL = document.querySelector("#searchBtn");
